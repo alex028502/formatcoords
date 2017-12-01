@@ -117,5 +117,30 @@ describe('Coords', function () {
 		it ('should render to 35° 16′ 55″ S, 149° 7′ 43″ E when only passing options object and forgetting format', function() {
 			expect(coord.format({decimalPlaces: 0})).to.equal('35° 16′ 55″ S 149° 7′ 43″ E');
 		});
+
+		it ('should render 1° 1′ 00″ not 1° 0′ 60″ when rounding off 1° 0′ 59.9″', function() {
+			const coord = formatcoords(1 + 59.9 / 60 / 60, 0);
+			expect(coord.format({decimalPlaces: 0})).to.equal('1° 1′ 00″ N 0° 0′ 0″ E');
+		});
+
+		it ('should render 2° 0′ 00″ not 59° 60′ 0″ when rounding off 1° 59′ 59.9″', function() {
+			const coord = formatcoords(1 + 59/60 + 59.9 / 60 / 60, 0);
+			expect(coord.format({decimalPlaces: 0})).to.equal('2° 0′ 00″ N 0° 0′ 0″ E');
+		});
+	});
+});
+
+const moment = require('moment');
+
+describe('moment js on the other hand', function() {
+	it('solves this problem by truncating instead of rounding off', function() {
+		const m = moment('2013-03-10 2:59:59 am').add(999, 'ms');
+		expect(m.format('hhmmss')).to.equal('025959');
+	});
+
+	it('only increments when you have a full second', function() {
+		const m = moment('2013-03-10 2:59:59 am').add(1000, 'ms');
+		expect(m.format()).to.include('3:00:00');
+		expect(m.format('hhmmss')).to.equal('030000');
 	});
 });
